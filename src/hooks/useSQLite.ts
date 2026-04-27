@@ -85,6 +85,42 @@ export const useSQLite = () => {
           return lines.length > 0;
         });
 
+      // Translate common MySQL commands to SQLite equivalents
+      const translateMySQL = (sql: string): string => {
+        const trimmed = sql.trim();
+        const upper = trimmed.toUpperCase();
+
+        // DESCRIBE table / DESC table -> PRAGMA table_info(table)
+        const describeMatch = trimmed.match(/^(DESCRIBE|DESC)\s+`?([a-zA-Z_][a-zA-Z0-9_]*)`?\s*$/i);
+        if (describeMatch) {
+          return `PRAGMA table_info(${describeMatch[2]})`;
+        }
+
+        // SHOW TABLES -> sqlite_master query
+        if (/^SHOW\s+TABLES\s*$/i.test(trimmed)) {
+          return `SELECT name AS Tables FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name`;
+        }
+
+        // SHOW COLUMNS FROM table -> PRAGMA table_info(table)
+        const showColsMatch = trimmed.match(/^SHOW\s+COLUMNS\s+(?:FROM|IN)\s+`?([a-zA-Z_][a-zA-Z0-9_]*)`?\s*$/i);
+        if (showColsMatch) {
+          return `PRAGMA table_info(${showColsMatch[1]})`;
+        }
+
+        // SHOW DATABASES -> single in-memory db info
+        if (/^SHOW\s+DATABASES\s*$/i.test(trimmed)) {
+          return `SELECT 'main' AS Database`;
+        }
+
+        // SHOW CREATE TABLE table -> sqlite_master sql
+        const showCreateMatch = trimmed.match(/^SHOW\s+CREATE\s+TABLE\s+`?([a-zA-Z_][a-zA-Z0-9_]*)`?\s*$/i);
+        if (showCreateMatch) {
+          return `SELECT name AS "Table", sql AS "Create Table" FROM sqlite_master WHERE type='table' AND name='${showCreateMatch[1]}'`;
+        }
+
+        return sql;
+      };
+
       for (const stmt of statements) {
         const cleanLines = stmt
           .split("\n")
@@ -92,9 +128,11 @@ export const useSQLite = () => {
         const clean = cleanLines.join("\n").trim();
         if (!clean) continue;
 
+        const translated = translateMySQL(clean);
+
         try {
-          const res = database.exec(clean);
-          const upper = clean.toUpperCase();
+          const res = database.exec(translated);
+          const upper = translated.toUpperCase();
 
           if (
             res.length > 0 &&
