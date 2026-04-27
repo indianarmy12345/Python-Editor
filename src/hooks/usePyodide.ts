@@ -438,7 +438,9 @@ sys.stdout = _stdout_capture
 sys.stderr = _stderr_capture
           `);
 
-          await pyodideRef.current.runPythonAsync(code);
+          if (userCode.trim()) {
+            await pyodideRef.current.runPythonAsync(userCode);
+          }
 
           const stdout = pyodideRef.current.runPython("_stdout_capture.get_output()");
           const stderr = pyodideRef.current.runPython("_stderr_capture.get_output()");
