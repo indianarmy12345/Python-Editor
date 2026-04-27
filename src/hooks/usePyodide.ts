@@ -271,43 +271,51 @@ else:
     const modules = new Set<string>();
     let match;
     while ((match = importRegex.exec(code)) !== null) {
-      const mod = match[1];
-      if (!stdlibAndBuiltin.has(mod)) {
-        modules.add(mod);
-      }
+      const full = match[1];
+      const top = full.split(".")[0];
+      if (stdlibAndBuiltin.has(top)) continue;
+      modules.add(PACKAGE_ALIASES[full] ? full : top);
     }
 
     if (modules.size === 0) return;
 
-    // Load micropip and install missing packages
     await py.loadPackage("micropip");
     const micropip = py.pyimport("micropip");
 
     for (const mod of modules) {
+      const alias = PACKAGE_ALIASES[mod];
+      const importName = alias?.importName || mod;
       try {
-        // Check if already available
-        py.runPython(`import ${mod}`);
+        py.runPython(`import ${importName}`);
+        continue;
       } catch {
-        // Not available, try installing
+        // not available, install or shim below
+      }
+
+      if (alias?.shim) {
+        await installMysqlShim(alias.shim as "mysql_connector" | "pymysql");
+        continue;
+      }
+
+      const installName = alias?.install || mod;
+      setOutputs((prev) => [
+        ...prev,
+        { type: "info", content: `📦 Installing package: ${installName}...`, timestamp: new Date() },
+      ]);
+      try {
+        await micropip.install(installName);
         setOutputs((prev) => [
           ...prev,
-          { type: "info", content: `📦 Installing package: ${mod}...`, timestamp: new Date() },
+          { type: "info", content: `✅ Installed ${installName} successfully`, timestamp: new Date() },
         ]);
-        try {
-          await micropip.install(mod);
-          setOutputs((prev) => [
-            ...prev,
-            { type: "info", content: `✅ Installed ${mod} successfully`, timestamp: new Date() },
-          ]);
-        } catch (err: any) {
-          setOutputs((prev) => [
-            ...prev,
-            { type: "error", content: `❌ Failed to install ${mod}: ${err.message || err}`, timestamp: new Date() },
-          ]);
-        }
+      } catch (err: any) {
+        setOutputs((prev) => [
+          ...prev,
+          { type: "error", content: `❌ Failed to install ${installName}: ${err.message || err}. Tip: not all PyPI packages run in the browser (Pyodide).`, timestamp: new Date() },
+        ]);
       }
     }
-  }, []);
+  }, [installMysqlShim]);
 
   const runCode = useCallback(
     async (code: string, mode: "python" | "mysql" = "python") => {
