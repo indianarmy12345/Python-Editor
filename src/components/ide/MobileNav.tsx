@@ -66,7 +66,7 @@ const MobileNav = ({
               </div>
             </div>
             <div className="border-t border-border">
-              <TipsPanel />
+              <TipsPanel editorMode={editorMode} />
             </div>
           </SheetContent>
         </Sheet>

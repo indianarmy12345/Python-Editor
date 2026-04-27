@@ -145,7 +145,7 @@ const PythonIDE = () => {
       <div className="flex-1 flex overflow-hidden">
         {/* Tips Panel - Desktop only */}
         <aside className="hidden xl:block w-64 flex-shrink-0">
-          <TipsPanel />
+          <TipsPanel editorMode={editorMode} />
         </aside>
 
         {/* Editor and Console */}
