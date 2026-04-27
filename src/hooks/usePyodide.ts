@@ -405,7 +405,17 @@ for _stmt in _statements:
           pyodideRef.current.runPython(`import sys; sys.stdout = sys.__stdout__; sys.stderr = sys.__stderr__`);
         } else {
           // Python mode
-          await installImports(code);
+
+          // Strip pip-style install lines from the code and run them as install commands
+          const codeLines = code.split("\n");
+          const remainingLines: string[] = [];
+          for (const line of codeLines) {
+            const handled = await runPipCommand(line);
+            if (!handled) remainingLines.push(line);
+          }
+          const userCode = remainingLines.join("\n");
+
+          await installImports(userCode);
 
           pyodideRef.current.runPython(`
 import sys
