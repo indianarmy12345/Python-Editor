@@ -22,6 +22,36 @@ print(f"The sum of {x} and {y} is {x + y}")
 for i in range(5):
     print(f"Count: {i}")
 
+# Example: MySQL Database Connection (uses SQLite in browser)
+# Install the connector first, then use it just like real MySQL!
+pip install mysql-connector-python
+import mysql.connector
+
+# Connect to database (works in browser with SQLite backend)
+db = mysql.connector.connect(
+    host="localhost",
+    user="user",
+    password="password",
+    database="mydb"
+)
+
+# Create a cursor and execute queries
+cursor = db.cursor()
+cursor.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT, email TEXT)")
+cursor.execute("INSERT INTO users (name, email) VALUES (%s, %s)", ("Alice", "alice@example.com"))
+cursor.execute("INSERT INTO users (name, email) VALUES (%s, %s)", ("Bob", "bob@example.com"))
+db.commit()
+
+# Fetch and display results
+cursor.execute("SELECT * FROM users")
+print("\\nUsers in database:")
+for row in cursor.fetchall():
+    print(f"  ID: {row[0]}, Name: {row[1]}, Email: {row[2]}")
+
+cursor.close()
+db.close()
+print("\\nDatabase operations completed successfully!")
+
 # Try modifying this code and run it!
 `;
 
