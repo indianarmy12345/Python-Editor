@@ -470,7 +470,7 @@ sys.stderr = sys.__stderr__
         setIsRunning(false);
       }
     },
-    [isRunning, installImports]
+    [isRunning, installImports, runPipCommand]
   );
 
   const clearOutputs = useCallback(() => {
