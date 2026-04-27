@@ -112,6 +112,12 @@ export const usePyodide = () => {
     const py = pyodideRef.current;
     if (!py) return;
     const moduleName = flavor === "mysql_connector" ? "mysql" : "pymysql";
+    // sqlite3 is a Pyodide package that needs to be explicitly loaded
+    try {
+      await py.loadPackage("sqlite3");
+    } catch {
+      // ignore — may already be loaded or unavailable in this Pyodide build
+    }
     const shimCode = `
 import sys, types, sqlite3, builtins
 
