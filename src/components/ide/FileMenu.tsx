@@ -160,6 +160,54 @@ square_dict = {x: x**2 for x in range(1, 6)}
 print(f"Square dict: {square_dict}")
 `,
   },
+  {
+    name: "MySQL Database",
+    code: `# MySQL Database Connection Example
+# Install the connector and connect to a database!
+
+pip install mysql-connector-python
+import mysql.connector
+
+# Connect to database (uses SQLite backend in browser)
+db = mysql.connector.connect(
+    host="localhost",
+    user="user",
+    password="password",
+    database="mydb"
+)
+
+# Create a cursor
+cursor = db.cursor()
+
+# Create a table
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT
+    )
+""")
+
+# Insert data using parameterized queries
+cursor.execute("INSERT INTO users (name, email) VALUES (%s, %s)", ("Alice", "alice@example.com"))
+cursor.execute("INSERT INTO users (name, email) VALUES (%s, %s)", ("Bob", "bob@example.com"))
+cursor.execute("INSERT INTO users (name, email) VALUES (%s, %s)", ("Charlie", "charlie@example.com"))
+
+# Commit the changes
+db.commit()
+
+# Query the data
+cursor.execute("SELECT * FROM users")
+print("All users:")
+for row in cursor.fetchall():
+    print(f"  ID: {row[0]}, Name: {row[1]}, Email: {row[2]}")
+
+# Close connections
+cursor.close()
+db.close()
+print("\\nDatabase operations completed!")
+`,
+  },
 ];
 
 const sqlTemplates = [
