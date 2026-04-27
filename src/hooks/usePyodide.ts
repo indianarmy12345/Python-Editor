@@ -92,12 +92,161 @@ export const usePyodide = () => {
     loadPyodideScript();
   }, []);
 
+  // Map of user-facing package name -> { pyodide package name, import name }
+  // Some packages can't run in the browser (need sockets/C libs); we shim them.
+  const PACKAGE_ALIASES: Record<string, { install?: string; shim?: string; importName: string }> = {
+    "mysql-connector-python": { shim: "mysql_connector", importName: "mysql.connector" },
+    "mysql.connector": { shim: "mysql_connector", importName: "mysql.connector" },
+    "mysql": { shim: "mysql_connector", importName: "mysql" },
+    "pymysql": { shim: "pymysql", importName: "pymysql" },
+    "sklearn": { install: "scikit-learn", importName: "sklearn" },
+    "scikit-learn": { install: "scikit-learn", importName: "sklearn" },
+    "cv2": { install: "opencv-python", importName: "cv2" },
+    "PIL": { install: "Pillow", importName: "PIL" },
+    "bs4": { install: "beautifulsoup4", importName: "bs4" },
+    "yaml": { install: "pyyaml", importName: "yaml" },
+  };
+
+  // Install a browser-side shim that emulates mysql.connector / pymysql on top of sqlite3
+  const installMysqlShim = useCallback(async (flavor: "mysql_connector" | "pymysql") => {
+    const py = pyodideRef.current;
+    if (!py) return;
+    const moduleName = flavor === "mysql_connector" ? "mysql" : "pymysql";
+    const shimCode = `
+import sys, types, sqlite3, builtins
+
+if not hasattr(builtins, '_shared_sql_conn'):
+    builtins._shared_sql_conn = sqlite3.connect(':memory:')
+
+class _Cursor:
+    def __init__(self, conn):
+        self._cur = conn.cursor()
+        self.lastrowid = None
+        self.rowcount = -1
+    def execute(self, query, params=None):
+        # Translate %s placeholders (mysql) to ? (sqlite)
+        if params is not None and '%s' in query:
+            query = query.replace('%s', '?')
+        if params is None:
+            self._cur.execute(query)
+        else:
+            self._cur.execute(query, params)
+        self.lastrowid = self._cur.lastrowid
+        self.rowcount = self._cur.rowcount
+        return self
+    def executemany(self, query, seq):
+        if '%s' in query:
+            query = query.replace('%s', '?')
+        self._cur.executemany(query, seq)
+        self.rowcount = self._cur.rowcount
+    def fetchone(self): return self._cur.fetchone()
+    def fetchall(self): return self._cur.fetchall()
+    def fetchmany(self, size=1): return self._cur.fetchmany(size)
+    @property
+    def description(self): return self._cur.description
+    def close(self): self._cur.close()
+    def __iter__(self): return iter(self._cur)
+
+class _Connection:
+    def __init__(self, **kwargs):
+        self._conn = builtins._shared_sql_conn
+        self._kwargs = kwargs
+    def cursor(self, **kw): return _Cursor(self._conn)
+    def commit(self): self._conn.commit()
+    def rollback(self): self._conn.rollback()
+    def close(self): pass
+    def is_connected(self): return True
+    def ping(self, **kw): return True
+
+def connect(*args, **kwargs):
+    print("⚠️  Using in-browser SQLite shim for MySQL (real MySQL servers can't be reached from the browser).")
+    return _Connection(**kwargs)
+
+class Error(Exception): pass
+class DatabaseError(Error): pass
+class IntegrityError(DatabaseError): pass
+class ProgrammingError(DatabaseError): pass
+class OperationalError(DatabaseError): pass
+
+if "${flavor}" == "mysql_connector":
+    mysql_mod = types.ModuleType("mysql")
+    connector_mod = types.ModuleType("mysql.connector")
+    connector_mod.connect = connect
+    connector_mod.Error = Error
+    connector_mod.DatabaseError = DatabaseError
+    connector_mod.IntegrityError = IntegrityError
+    connector_mod.ProgrammingError = ProgrammingError
+    connector_mod.OperationalError = OperationalError
+    mysql_mod.connector = connector_mod
+    sys.modules["mysql"] = mysql_mod
+    sys.modules["mysql.connector"] = connector_mod
+else:
+    pymysql_mod = types.ModuleType("pymysql")
+    pymysql_mod.connect = connect
+    pymysql_mod.Error = Error
+    pymysql_mod.DatabaseError = DatabaseError
+    pymysql_mod.IntegrityError = IntegrityError
+    pymysql_mod.ProgrammingError = ProgrammingError
+    pymysql_mod.OperationalError = OperationalError
+    sys.modules["pymysql"] = pymysql_mod
+`;
+    py.runPython(shimCode);
+    setOutputs((prev) => [
+      ...prev,
+      { type: "info", content: `✅ Loaded ${moduleName} (browser SQLite shim)`, timestamp: new Date() },
+    ]);
+  }, []);
+
+  // Run an explicit pip-style install command. Returns true if the line was a pip command.
+  const runPipCommand = useCallback(async (line: string): Promise<boolean> => {
+    const py = pyodideRef.current;
+    if (!py) return false;
+    // Match: pip install x, pip3 install x, !pip install x, %pip install x, python -m pip install x
+    const m = line.match(/^\s*(?:!|%)?\s*(?:python\s+-m\s+)?pip[0-9]*\s+install\s+(.+?)\s*$/);
+    if (!m) return false;
+    // Strip flags, keep package names
+    const pkgs = m[1]
+      .split(/\s+/)
+      .filter((p) => p && !p.startsWith("-"));
+    if (pkgs.length === 0) return true;
+
+    await py.loadPackage("micropip");
+    const micropip = py.pyimport("micropip");
+
+    for (const rawPkg of pkgs) {
+      const pkg = rawPkg.replace(/[<>=!~].*$/, "").trim(); // strip version specifiers
+      const alias = PACKAGE_ALIASES[pkg];
+      setOutputs((prev) => [
+        ...prev,
+        { type: "info", content: `📦 pip install ${rawPkg}...`, timestamp: new Date() },
+      ]);
+      try {
+        if (alias?.shim) {
+          await installMysqlShim(alias.shim as "mysql_connector" | "pymysql");
+          continue;
+        }
+        const installName = alias?.install || pkg;
+        await micropip.install(installName);
+        setOutputs((prev) => [
+          ...prev,
+          { type: "info", content: `✅ Successfully installed ${pkg}`, timestamp: new Date() },
+        ]);
+      } catch (err: any) {
+        setOutputs((prev) => [
+          ...prev,
+          { type: "error", content: `❌ Failed to install ${pkg}: ${err.message || err}`, timestamp: new Date() },
+        ]);
+      }
+    }
+    return true;
+  }, [installMysqlShim]);
+
   const installImports = useCallback(async (code: string) => {
     const py = pyodideRef.current;
     if (!py) return;
 
-    // Extract import statements
-    const importRegex = /^\s*(?:import|from)\s+([a-zA-Z_][a-zA-Z0-9_]*)/gm;
+    // Extract import statements (supports dotted imports like "mysql.connector")
+    const importRegex = /^\s*(?:import|from)\s+([a-zA-Z_][a-zA-Z0-9_.]*)/gm;
     const stdlibAndBuiltin = new Set([
       "sys", "os", "io", "re", "math", "json", "random", "time", "datetime",
       "collections", "itertools", "functools", "operator", "string", "textwrap",
