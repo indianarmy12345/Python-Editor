@@ -344,8 +344,7 @@ class OutputCapture:
     def __init__(self):
         self.outputs = []
     def write(self, text):
-        if text.strip():
-            self.outputs.append(text)
+        self.outputs.append(text)
     def flush(self):
         pass
     def get_output(self):
@@ -431,8 +430,7 @@ class OutputCapture:
     def __init__(self):
         self.outputs = []
     def write(self, text):
-        if text.strip():
-            self.outputs.append(text)
+        self.outputs.append(text)
     def flush(self):
         pass
     def get_output(self):
