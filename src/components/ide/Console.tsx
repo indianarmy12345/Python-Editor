@@ -13,6 +13,14 @@ interface ConsoleProps {
 }
 
 const Console = ({ outputs, isRunning }: ConsoleProps) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [outputs]);
+
   return (
     <div className="ide-console h-full flex flex-col">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-secondary/30">
@@ -26,7 +34,7 @@ const Console = ({ outputs, isRunning }: ConsoleProps) => {
         )}
       </div>
       
-      <div className="flex-1 overflow-auto p-4 space-y-1">
+      <div ref={scrollRef} className="flex-1 overflow-auto p-4 space-y-1">
         {outputs.length === 0 ? (
           <p className="text-muted-foreground text-sm italic">
             Output will appear here when you run your code...
