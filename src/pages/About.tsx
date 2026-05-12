@@ -67,6 +67,24 @@ const About = () => {
               solving coding challenges.
             </p>
           </div>
+
+          <div className="p-4 rounded-md bg-secondary/50 border border-primary/20">
+            <h3 className="font-semibold mb-2 flex items-center gap-2">
+              <Globe className="w-4 h-4 text-primary" />
+              Class 12 Syllabus Resource
+            </h3>
+            <p className="text-sm text-muted-foreground mb-2">
+              Check out my other website to access the complete Class 12 syllabus and study material:
+            </p>
+            <a
+              href="https://cslearners.lovable.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline text-sm font-medium break-all"
+            >
+              https://cslearners.lovable.app/
+            </a>
+          </div>
         </div>
       </main>
     </div>

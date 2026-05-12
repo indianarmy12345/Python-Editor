@@ -161,6 +161,137 @@ print(f"Square dict: {square_dict}")
 `,
   },
   {
+    name: "File Handling - Text",
+    code: `# Text File Handling
+# Write to a text file
+with open("sample.txt", "w") as f:
+    f.write("Hello, World!\\n")
+    f.write("This is a text file example.\\n")
+    f.write("Python makes file handling easy!\\n")
+
+print("File written successfully!")
+
+# Read the entire file
+with open("sample.txt", "r") as f:
+    content = f.read()
+    print("\\n--- File Content ---")
+    print(content)
+
+# Read line by line
+print("--- Reading line by line ---")
+with open("sample.txt", "r") as f:
+    for i, line in enumerate(f, 1):
+        print(f"Line {i}: {line.strip()}")
+
+# Append to file
+with open("sample.txt", "a") as f:
+    f.write("This line was appended.\\n")
+
+# Read all lines as list
+with open("sample.txt", "r") as f:
+    lines = f.readlines()
+    print(f"\\nTotal lines: {len(lines)}")
+`,
+  },
+  {
+    name: "File Handling - Binary (Pickle)",
+    code: `# Binary File Handling using Pickle
+import pickle
+
+# Data to be stored
+student_data = {
+    "name": "Lavish Kumar",
+    "class": 12,
+    "subjects": ["Computer Science", "Math", "Physics", "Chemistry"],
+    "marks": {"CS": 95, "Math": 92, "Physics": 88, "Chemistry": 90}
+}
+
+# Write data to binary file using pickle (dump)
+with open("student.dat", "wb") as f:
+    pickle.dump(student_data, f)
+    print("Data written to binary file successfully!")
+
+# Read data from binary file (load)
+with open("student.dat", "rb") as f:
+    loaded_data = pickle.load(f)
+    print("\\n--- Loaded Data ---")
+    print(f"Name: {loaded_data['name']}")
+    print(f"Class: {loaded_data['class']}")
+    print(f"Subjects: {loaded_data['subjects']}")
+    print(f"Marks: {loaded_data['marks']}")
+
+# Storing multiple objects
+records = [
+    {"id": 1, "name": "Alice", "score": 85},
+    {"id": 2, "name": "Bob", "score": 90},
+    {"id": 3, "name": "Charlie", "score": 78},
+]
+
+with open("records.dat", "wb") as f:
+    for record in records:
+        pickle.dump(record, f)
+    print("\\nMultiple records written!")
+
+# Reading multiple objects
+print("\\n--- Reading All Records ---")
+with open("records.dat", "rb") as f:
+    try:
+        while True:
+            rec = pickle.load(f)
+            print(rec)
+    except EOFError:
+        print("End of file reached.")
+`,
+  },
+  {
+    name: "File Handling - CSV",
+    code: `# CSV File Handling
+import csv
+
+# Write CSV using writer
+header = ["ID", "Name", "Class", "Marks"]
+rows = [
+    [1, "Lavish", 12, 95],
+    [2, "Aman", 12, 88],
+    [3, "Riya", 12, 92],
+    [4, "Karan", 12, 79],
+]
+
+with open("students.csv", "w", newline="") as f:
+    writer = csv.writer(f)
+    writer.writerow(header)
+    writer.writerows(rows)
+    print("CSV file created!")
+
+# Read CSV using reader
+print("\\n--- Reading CSV ---")
+with open("students.csv", "r") as f:
+    reader = csv.reader(f)
+    for row in reader:
+        print(row)
+
+# Write CSV using DictWriter
+data = [
+    {"name": "Alice", "age": 17, "city": "Delhi"},
+    {"name": "Bob", "age": 18, "city": "Mumbai"},
+    {"name": "Charlie", "age": 17, "city": "Bangalore"},
+]
+
+with open("people.csv", "w", newline="") as f:
+    fieldnames = ["name", "age", "city"]
+    writer = csv.DictWriter(f, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(data)
+
+# Read CSV using DictReader
+print("\\n--- Reading with DictReader ---")
+with open("people.csv", "r") as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        print(f"{row['name']} ({row['age']}) - {row['city']}")
+`,
+  },
+  {
     name: "MySQL Database",
     code: `# MySQL Database Connection Example
 # Install the connector and connect to a database!
