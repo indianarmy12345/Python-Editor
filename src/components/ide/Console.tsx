@@ -1,4 +1,5 @@
-import { Terminal, Trash2 } from "lucide-react";
+import { useRef, useEffect } from "react";
+import { Terminal } from "lucide-react";
 
 interface ConsoleOutput {
   type: "output" | "error" | "info";
