@@ -47,6 +47,11 @@ const Header = ({ onRun, onStop, onClear, isRunning, code, onCodeChange, editorM
       </div>
       
       <div className="flex items-center gap-2 sm:gap-3">
+        <nav className="hidden md:flex items-center gap-3 text-sm mr-2">
+          <Link to="/about" className="text-muted-foreground hover:text-primary transition-colors">About</Link>
+          <Link to="/contact" className="text-muted-foreground hover:text-primary transition-colors">Contact</Link>
+          <Link to="/terms" className="text-muted-foreground hover:text-primary transition-colors">Terms</Link>
+        </nav>
         <FileMenu code={code} onCodeChange={onCodeChange} editorMode={editorMode} />
         <ThemeToggle />
         
