@@ -1,4 +1,5 @@
 import { Menu, Play, Square, RotateCcw, Database } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   Sheet,
   SheetContent,
@@ -64,6 +65,11 @@ const MobileNav = ({
                 <FileMenu code={code} onCodeChange={onCodeChange} editorMode={editorMode} />
                 <ThemeToggle />
               </div>
+              <nav className="flex flex-col gap-1 pt-2 border-t border-border">
+                <Link to="/about" className="px-3 py-2 rounded-md text-sm hover:bg-secondary transition-colors">About</Link>
+                <Link to="/contact" className="px-3 py-2 rounded-md text-sm hover:bg-secondary transition-colors">Contact</Link>
+                <Link to="/terms" className="px-3 py-2 rounded-md text-sm hover:bg-secondary transition-colors">Terms &amp; Conditions</Link>
+              </nav>
             </div>
             <div className="border-t border-border">
               <TipsPanel editorMode={editorMode} />
