@@ -59,6 +59,11 @@ const PythonIDE = () => {
     [activeTabId, updateTabContent]
   );
 
+  const handleResetEditor = useCallback(() => {
+    updateTabContent(activeTabId, "");
+  }, [activeTabId, updateTabContent]);
+
+
   const handleLoadFile = useCallback(
     (code: string, fileName?: string) => {
       loadFileToTab(fileName || "loaded.py", code);
