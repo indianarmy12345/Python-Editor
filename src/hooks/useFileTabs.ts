@@ -7,52 +7,28 @@ export interface FileTab {
   isModified: boolean;
 }
 
-const defaultPythonCode = `# Welcome to Python Editor! 🐍
-# Write your Python code here and click "Run" to execute it.
+const defaultPythonCode = `# ╔══════════════════════════════════════════╗
+# ║      Welcome to Python Editor  🐍        ║
+# ║   Write code below and press  Run ▶      ║
+# ╚══════════════════════════════════════════╝
 
-# Example: Hello World
+# 1. Print a friendly message
 print("Hello, World!")
 
-# Example: Simple calculation
-x = 10
-y = 20
-print(f"The sum of {x} and {y} is {x + y}")
+# 2. Variables and arithmetic
+name = "Coder"
+age = 17
+print(f"Hi {name}, you are {age} years old.")
 
-# Example: Loop
-for i in range(5):
-    print(f"Count: {i}")
+# 3. A simple loop
+for i in range(1, 6):
+    print(f"Step {i}")
 
-# Example: MySQL Database Connection (uses SQLite in browser)
-# Install the connector first, then use it just like real MySQL!
-pip install mysql-connector-python
-import mysql.connector
+# 4. A tiny function
+def square(n):
+    return n * n
 
-# Connect to database (works in browser with SQLite backend)
-db = mysql.connector.connect(
-    host="localhost",
-    user="user",
-    password="password",
-    database="mydb"
-)
-
-# Create a cursor and execute queries
-cursor = db.cursor()
-cursor.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT, email TEXT)")
-cursor.execute("INSERT INTO users (name, email) VALUES (%s, %s)", ("Alice", "alice@example.com"))
-cursor.execute("INSERT INTO users (name, email) VALUES (%s, %s)", ("Bob", "bob@example.com"))
-db.commit()
-
-# Fetch and display results
-cursor.execute("SELECT * FROM users")
-print("\\nUsers in database:")
-for row in cursor.fetchall():
-    print(f"  ID: {row[0]}, Name: {row[1]}, Email: {row[2]}")
-
-cursor.close()
-db.close()
-print("\\nDatabase operations completed successfully!")
-
-# Try modifying this code and run it!
+print("Square of 7 is", square(7))
 `;
 
 const defaultMySQLCode = `-- Welcome to SQL Editor!
