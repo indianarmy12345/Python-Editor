@@ -66,6 +66,17 @@ const Header = ({ onRun, onStop, onClear, onResetEditor, isRunning, code, onCode
           <RotateCcw className="w-4 h-4" />
           <span className="hidden sm:inline">Clear</span>
         </button>
+
+        <button
+          onClick={onResetEditor}
+          className="flex items-center gap-2 px-4 py-2 rounded-md 
+                     bg-secondary text-secondary-foreground hover:bg-secondary/80
+                     transition-colors duration-200"
+          title="Reset Editor (clear all code)"
+        >
+          <FileX className="w-4 h-4" />
+          <span className="hidden sm:inline">Reset</span>
+        </button>
         
         {isRunning ? (
           <button
