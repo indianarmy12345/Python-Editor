@@ -1,4 +1,4 @@
-import { Play, Square, RotateCcw, Database } from "lucide-react";
+import { Play, Square, RotateCcw, Database, FileX } from "lucide-react";
 import { Link } from "react-router-dom";
 import pythonLogo from "@/assets/python-logo.png";
 import mysqlLogo from "@/assets/mysql-logo.svg";
