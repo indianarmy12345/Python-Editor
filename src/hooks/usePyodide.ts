@@ -446,7 +446,7 @@ sys.stderr = sys.__stderr__
         setIsRunning(false);
       }
     },
-    [isRunning, installImports, runPipCommand]
+    [isRunning, installImports, runPipCommand, ensurePyodide]
   );
 
   const clearOutputs = useCallback(() => {
