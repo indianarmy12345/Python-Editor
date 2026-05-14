@@ -18,6 +18,7 @@ interface MobileNavProps {
   onRun: () => void;
   onStop: () => void;
   onClear: () => void;
+  onResetEditor: () => void;
   isRunning: boolean;
   code: string;
   onCodeChange: (code: string) => void;
@@ -29,6 +30,7 @@ const MobileNav = ({
   onRun,
   onStop,
   onClear,
+  onResetEditor,
   isRunning,
   code,
   onCodeChange,
