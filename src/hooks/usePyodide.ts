@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import type { ConsoleOutput } from "@/components/ide/Console";
 
 declare global {
@@ -9,87 +9,55 @@ declare global {
 
 export const usePyodide = () => {
   const [pyodide, setPyodide] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [outputs, setOutputs] = useState<ConsoleOutput[]>([]);
   const pyodideRef = useRef<any>(null);
+  const loadPromiseRef = useRef<Promise<any> | null>(null);
 
-  useEffect(() => {
-    const loadPyodideScript = async () => {
-      // Check if script already loaded
-      if (window.loadPyodide) {
-        try {
-          const py = await window.loadPyodide({
-            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/",
-          });
-          pyodideRef.current = py;
-          setPyodide(py);
-          setOutputs([
-            {
-              type: "info",
-              content: "Python environment loaded successfully! Ready to code.",
-              timestamp: new Date(),
-            },
-          ]);
-        } catch (error) {
-          setOutputs([
-            {
-              type: "error",
-              content: `Failed to load Python: ${error}`,
-              timestamp: new Date(),
-            },
-          ]);
-        }
-        setIsLoading(false);
-        return;
+  const ensurePyodide = useCallback(async () => {
+    if (pyodideRef.current) return pyodideRef.current;
+    if (loadPromiseRef.current) return loadPromiseRef.current;
+
+    setIsLoading(true);
+    setOutputs((prev) => [
+      ...prev,
+      { type: "info", content: "Loading Python environment (first run only)...", timestamp: new Date() },
+    ]);
+
+    loadPromiseRef.current = (async () => {
+      if (!window.loadPyodide) {
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js";
+          script.async = true;
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error("Failed to load Pyodide script"));
+          document.head.appendChild(script);
+        });
       }
+      const py = await window.loadPyodide({
+        indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/",
+      });
+      pyodideRef.current = py;
+      setPyodide(py);
+      setOutputs((prev) => [
+        ...prev,
+        { type: "info", content: "✅ Python environment ready.", timestamp: new Date() },
+      ]);
+      setIsLoading(false);
+      return py;
+    })().catch((err) => {
+      setOutputs((prev) => [
+        ...prev,
+        { type: "error", content: `Failed to load Python: ${err.message || err}`, timestamp: new Date() },
+      ]);
+      setIsLoading(false);
+      loadPromiseRef.current = null;
+      throw err;
+    });
 
-      // Load Pyodide script
-      const script = document.createElement("script");
-      script.src = "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js";
-      script.async = true;
-
-      script.onload = async () => {
-        try {
-          const py = await window.loadPyodide({
-            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/",
-          });
-          pyodideRef.current = py;
-          setPyodide(py);
-          setOutputs([
-            {
-              type: "info",
-              content: "Python environment loaded successfully! Ready to code.",
-              timestamp: new Date(),
-            },
-          ]);
-        } catch (error) {
-          setOutputs([
-            {
-              type: "error",
-              content: `Failed to load Python: ${error}`,
-              timestamp: new Date(),
-            },
-          ]);
-        }
-        setIsLoading(false);
-      };
-
-      script.onerror = () => {
-        setOutputs([
-          {
-            type: "error",
-            content: "Failed to load Pyodide. Check your internet connection.",
-            timestamp: new Date(),
-          },
-        ]);
-        setIsLoading(false);
-      };
-
-      document.head.appendChild(script);
-    };
-
-    loadPyodideScript();
+    return loadPromiseRef.current;
   }, []);
 
   // Map of user-facing package name -> { pyodide package name, import name }
@@ -325,8 +293,12 @@ else:
 
   const runCode = useCallback(
     async (code: string, mode: "python" | "mysql" = "python") => {
-      if (!pyodideRef.current || isRunning) return;
-
+      if (isRunning) return;
+      try {
+        await ensurePyodide();
+      } catch {
+        return;
+      }
       setIsRunning(true);
       setOutputs((prev) => [
         ...prev,
@@ -474,7 +446,7 @@ sys.stderr = sys.__stderr__
         setIsRunning(false);
       }
     },
-    [isRunning, installImports, runPipCommand]
+    [isRunning, installImports, runPipCommand, ensurePyodide]
   );
 
   const clearOutputs = useCallback(() => {
