@@ -10,6 +10,7 @@ interface HeaderProps {
   onRun: () => void;
   onStop: () => void;
   onClear: () => void;
+  onResetEditor: () => void;
   isRunning: boolean;
   code: string;
   onCodeChange: (code: string) => void;
@@ -17,7 +18,7 @@ interface HeaderProps {
   onEditorModeChange: (mode: EditorMode) => void;
 }
 
-const Header = ({ onRun, onStop, onClear, isRunning, code, onCodeChange, editorMode, onEditorModeChange }: HeaderProps) => {
+const Header = ({ onRun, onStop, onClear, onResetEditor, isRunning, code, onCodeChange, editorMode, onEditorModeChange }: HeaderProps) => {
   const isPython = editorMode === "python";
   return (
     <header className="ide-header px-6 py-4 flex items-center justify-between">
