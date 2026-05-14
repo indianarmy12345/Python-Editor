@@ -1,4 +1,4 @@
-import { Menu, Play, Square, RotateCcw, Database } from "lucide-react";
+import { Menu, Play, Square, RotateCcw, Database, FileX } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Sheet,
@@ -18,6 +18,7 @@ interface MobileNavProps {
   onRun: () => void;
   onStop: () => void;
   onClear: () => void;
+  onResetEditor: () => void;
   isRunning: boolean;
   code: string;
   onCodeChange: (code: string) => void;
@@ -29,6 +30,7 @@ const MobileNav = ({
   onRun,
   onStop,
   onClear,
+  onResetEditor,
   isRunning,
   code,
   onCodeChange,
@@ -94,6 +96,14 @@ const MobileNav = ({
           title="Clear Console"
         >
           <RotateCcw className="w-4 h-4" />
+        </button>
+
+        <button
+          onClick={onResetEditor}
+          className="p-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+          title="Reset Editor"
+        >
+          <FileX className="w-4 h-4" />
         </button>
         
         {isRunning ? (

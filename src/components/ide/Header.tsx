@@ -1,4 +1,4 @@
-import { Play, Square, RotateCcw, Database } from "lucide-react";
+import { Play, Square, RotateCcw, Database, FileX } from "lucide-react";
 import { Link } from "react-router-dom";
 import pythonLogo from "@/assets/python-logo.png";
 import mysqlLogo from "@/assets/mysql-logo.svg";
@@ -10,6 +10,7 @@ interface HeaderProps {
   onRun: () => void;
   onStop: () => void;
   onClear: () => void;
+  onResetEditor: () => void;
   isRunning: boolean;
   code: string;
   onCodeChange: (code: string) => void;
@@ -17,7 +18,7 @@ interface HeaderProps {
   onEditorModeChange: (mode: EditorMode) => void;
 }
 
-const Header = ({ onRun, onStop, onClear, isRunning, code, onCodeChange, editorMode, onEditorModeChange }: HeaderProps) => {
+const Header = ({ onRun, onStop, onClear, onResetEditor, isRunning, code, onCodeChange, editorMode, onEditorModeChange }: HeaderProps) => {
   const isPython = editorMode === "python";
   return (
     <header className="ide-header px-6 py-4 flex items-center justify-between">
@@ -64,6 +65,17 @@ const Header = ({ onRun, onStop, onClear, isRunning, code, onCodeChange, editorM
         >
           <RotateCcw className="w-4 h-4" />
           <span className="hidden sm:inline">Clear</span>
+        </button>
+
+        <button
+          onClick={onResetEditor}
+          className="flex items-center gap-2 px-4 py-2 rounded-md 
+                     bg-secondary text-secondary-foreground hover:bg-secondary/80
+                     transition-colors duration-200"
+          title="Reset Editor (clear all code)"
+        >
+          <FileX className="w-4 h-4" />
+          <span className="hidden sm:inline">Reset</span>
         </button>
         
         {isRunning ? (

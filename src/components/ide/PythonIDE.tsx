@@ -59,6 +59,11 @@ const PythonIDE = () => {
     [activeTabId, updateTabContent]
   );
 
+  const handleResetEditor = useCallback(() => {
+    updateTabContent(activeTabId, "");
+  }, [activeTabId, updateTabContent]);
+
+
   const handleLoadFile = useCallback(
     (code: string, fileName?: string) => {
       loadFileToTab(fileName || "loaded.py", code);
@@ -111,6 +116,7 @@ const PythonIDE = () => {
           onRun={handleRun}
           onStop={isSQL ? stopSQL : stopPython}
           onClear={isSQL ? clearSQLResults : clearOutputs}
+          onResetEditor={handleResetEditor}
           isRunning={isRunning}
           code={activeTab.content}
           onCodeChange={(code) => handleLoadFile(code)}
@@ -124,6 +130,7 @@ const PythonIDE = () => {
         onRun={handleRun}
         onStop={isSQL ? stopSQL : stopPython}
         onClear={isSQL ? clearSQLResults : clearOutputs}
+        onResetEditor={handleResetEditor}
         isRunning={isRunning}
         code={activeTab.content}
         onCodeChange={(code) => handleLoadFile(code)}
