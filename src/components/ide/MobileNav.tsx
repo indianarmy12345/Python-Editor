@@ -97,6 +97,14 @@ const MobileNav = ({
         >
           <RotateCcw className="w-4 h-4" />
         </button>
+
+        <button
+          onClick={onResetEditor}
+          className="p-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+          title="Reset Editor"
+        >
+          <FileX className="w-4 h-4" />
+        </button>
         
         {isRunning ? (
           <button
