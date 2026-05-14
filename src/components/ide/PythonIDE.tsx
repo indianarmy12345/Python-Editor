@@ -152,10 +152,10 @@ const PythonIDE = () => {
         {isMobile ? (
           // Mobile: Vertical stack
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 min-h-0">
+            <div className="flex-[3] min-h-0">
               <CodeEditor code={activeTab.content} onChange={handleCodeChange} language={editorMode === "mysql" ? "sql" : "python"} />
             </div>
-            <div className="h-48 border-t border-border flex-shrink-0">
+            <div className="flex-[2] min-h-[280px] border-t border-border flex-shrink-0">
               {isSQL ? <SQLConsole results={sqlResults} isRunning={isRunning} /> : <Console outputs={outputs} isRunning={isRunning} />}
             </div>
           </div>
