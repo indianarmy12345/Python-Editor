@@ -293,8 +293,12 @@ else:
 
   const runCode = useCallback(
     async (code: string, mode: "python" | "mysql" = "python") => {
-      if (!pyodideRef.current || isRunning) return;
-
+      if (isRunning) return;
+      try {
+        await ensurePyodide();
+      } catch {
+        return;
+      }
       setIsRunning(true);
       setOutputs((prev) => [
         ...prev,
