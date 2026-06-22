@@ -129,7 +129,7 @@ const Admin = () => {
           <div>
             <h1 className="text-2xl font-bold">Admin Access</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Sign in with <span className="font-mono">{OWNER_EMAIL}</span> to view feedback.
+              Sign in with the owner account to view feedback.
             </p>
           </div>
           <div className="space-y-2">
@@ -167,7 +167,6 @@ const Admin = () => {
           <ArrowLeft className="w-4 h-4" /> Back to Editor
         </Link>
         <div className="flex items-center gap-3 text-sm">
-          <span className="text-muted-foreground">{session.user.email}</span>
           <Button variant="ghost" size="sm" onClick={signOut}><LogOut className="w-4 h-4" /> Sign out</Button>
         </div>
       </header>
@@ -179,7 +178,7 @@ const Admin = () => {
         {!isOwner ? (
           <div className="rounded-lg border bg-card p-8 text-center">
             <p className="text-muted-foreground">
-              This account is not authorized to view feedback. Sign in as <span className="font-mono">{OWNER_EMAIL}</span>.
+              This account is not authorized to view feedback.
             </p>
           </div>
         ) : loadingFeedback ? (
