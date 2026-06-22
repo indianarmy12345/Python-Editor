@@ -167,7 +167,6 @@ const Admin = () => {
           <ArrowLeft className="w-4 h-4" /> Back to Editor
         </Link>
         <div className="flex items-center gap-3 text-sm">
-          <span className="text-muted-foreground">{session.user.email}</span>
           <Button variant="ghost" size="sm" onClick={signOut}><LogOut className="w-4 h-4" /> Sign out</Button>
         </div>
       </header>
