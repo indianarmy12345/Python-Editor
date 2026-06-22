@@ -28,6 +28,37 @@ const Admin = () => {
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [loadingFeedback, setLoadingFeedback] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState(false);
+
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelected((prev) => (prev.size === feedback.length ? new Set() : new Set(feedback.map((f) => f.id))));
+  };
+
+  const deleteSelected = async () => {
+    if (selected.size === 0) return;
+    if (!confirm(`Delete ${selected.size} feedback ${selected.size === 1 ? "entry" : "entries"}?`)) return;
+    setDeleting(true);
+    const ids = Array.from(selected);
+    const { error } = await supabase.from("feedback").delete().in("id", ids);
+    setDeleting(false);
+    if (error) {
+      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+    } else {
+      setFeedback((prev) => prev.filter((f) => !selected.has(f.id)));
+      setSelected(new Set());
+      toast({ title: "Deleted", description: `${ids.length} removed.` });
+    }
+  };
+
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
