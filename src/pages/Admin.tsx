@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, LogOut, Mail, Loader2 } from "lucide-react";
+import { ArrowLeft, LogOut, Mail, Loader2, Trash2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,37 @@ const Admin = () => {
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [loadingFeedback, setLoadingFeedback] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState(false);
+
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelected((prev) => (prev.size === feedback.length ? new Set() : new Set(feedback.map((f) => f.id))));
+  };
+
+  const deleteSelected = async () => {
+    if (selected.size === 0) return;
+    if (!confirm(`Delete ${selected.size} feedback ${selected.size === 1 ? "entry" : "entries"}?`)) return;
+    setDeleting(true);
+    const ids = Array.from(selected);
+    const { error } = await supabase.from("feedback").delete().in("id", ids);
+    setDeleting(false);
+    if (error) {
+      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+    } else {
+      setFeedback((prev) => prev.filter((f) => !selected.has(f.id)));
+      setSelected(new Set());
+      toast({ title: "Deleted", description: `${ids.length} removed.` });
+    }
+  };
+
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
@@ -158,22 +190,46 @@ const Admin = () => {
             No feedback yet.
           </div>
         ) : (
-          <div className="space-y-4">
-            {feedback.map((f) => (
-              <article key={f.id} className="rounded-lg border bg-card p-6 shadow-sm">
-                <header className="flex items-start justify-between gap-4 mb-3">
-                  <div>
-                    <h3 className="font-semibold">{f.name}</h3>
-                    <a href={`mailto:${f.email}`} className="text-sm text-primary hover:underline">{f.email}</a>
+          <>
+            <div className="flex items-center justify-between mb-4 px-1">
+              <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+                <Checkbox
+                  checked={selected.size === feedback.length && feedback.length > 0}
+                  onCheckedChange={toggleSelectAll}
+                />
+                {selected.size > 0 ? `${selected.size} selected` : "Select all"}
+              </label>
+              {selected.size > 0 && (
+                <Button variant="destructive" size="sm" onClick={deleteSelected} disabled={deleting}>
+                  {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  Delete ({selected.size})
+                </Button>
+              )}
+            </div>
+            <div className="space-y-4">
+              {feedback.map((f) => (
+                <article key={f.id} className="rounded-lg border bg-card p-6 shadow-sm flex gap-4">
+                  <Checkbox
+                    checked={selected.has(f.id)}
+                    onCheckedChange={() => toggleSelect(f.id)}
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
+                    <header className="flex items-start justify-between gap-4 mb-3">
+                      <div>
+                        <h3 className="font-semibold">{f.name}</h3>
+                        <a href={`mailto:${f.email}`} className="text-sm text-primary hover:underline">{f.email}</a>
+                      </div>
+                      <time className="text-xs text-muted-foreground">
+                        {new Date(f.created_at).toLocaleString()}
+                      </time>
+                    </header>
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{f.message}</p>
                   </div>
-                  <time className="text-xs text-muted-foreground">
-                    {new Date(f.created_at).toLocaleString()}
-                  </time>
-                </header>
-                <p className="text-sm whitespace-pre-wrap leading-relaxed">{f.message}</p>
-              </article>
-            ))}
-          </div>
+                </article>
+              ))}
+            </div>
+          </>
         )}
       </main>
     </div>
