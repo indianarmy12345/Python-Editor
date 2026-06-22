@@ -1,0 +1,1 @@
+CREATE POLICY "Only owner can delete feedback" ON public.feedback FOR DELETE TO authenticated USING ((auth.jwt() ->> 'email'::text) = 'lavishkumar1232@gmail.com'::text);
