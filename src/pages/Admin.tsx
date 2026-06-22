@@ -56,16 +56,24 @@ const Admin = () => {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    const fn = mode === "signin" ? supabase.auth.signInWithPassword : supabase.auth.signUp;
-    const opts = mode === "signup"
-      ? { email, password, options: { emailRedirectTo: `${window.location.origin}/admin` } }
-      : { email, password };
-    const { error } = await fn(opts as any);
-    setSubmitting(false);
-    if (error) {
-      toast({ title: "Authentication failed", description: error.message, variant: "destructive" });
-    } else if (mode === "signup") {
-      toast({ title: "Check your email", description: "Confirm your email to finish signup." });
+    try {
+      const { error } =
+        mode === "signin"
+          ? await supabase.auth.signInWithPassword({ email, password })
+          : await supabase.auth.signUp({
+              email,
+              password,
+              options: { emailRedirectTo: `${window.location.origin}/admin` },
+            });
+      if (error) {
+        toast({ title: "Authentication failed", description: error.message, variant: "destructive" });
+      } else if (mode === "signup") {
+        toast({ title: "Account created", description: "You're signed in." });
+      }
+    } catch (err: any) {
+      toast({ title: "Unexpected error", description: err?.message ?? String(err), variant: "destructive" });
+    } finally {
+      setSubmitting(false);
     }
   };
 
