@@ -178,7 +178,7 @@ const Admin = () => {
         {!isOwner ? (
           <div className="rounded-lg border bg-card p-8 text-center">
             <p className="text-muted-foreground">
-              This account is not authorized to view feedback. Sign in as <span className="font-mono">{OWNER_EMAIL}</span>.
+              This account is not authorized to view feedback.
             </p>
           </div>
         ) : loadingFeedback ? (
