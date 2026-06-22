@@ -129,7 +129,7 @@ const Admin = () => {
           <div>
             <h1 className="text-2xl font-bold">Admin Access</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Sign in with <span className="font-mono">{OWNER_EMAIL}</span> to view feedback.
+              Sign in with the owner account to view feedback.
             </p>
           </div>
           <div className="space-y-2">
